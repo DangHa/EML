@@ -123,7 +123,7 @@ def main():
     parser.add_argument('--model', type=str, default="mlp", metavar='M',
                         choices=["mlp", "cnn"],
                         help='model which to train')
-    parser.add_argument('--optimizer', type=str, default="sgd", metavar='M',
+    parser.add_argument('--optimizer', type=str, default="sgd", metavar='OP',
                         choices=["sgd", "adam", "adamax"],
                         help='optimizer')
     parser.add_argument('--output-file', type=str, default=None, metavar='O',
