@@ -123,6 +123,9 @@ def main():
     parser.add_argument('--model', type=str, default="mlp", metavar='M',
                         choices=["mlp", "cnn"],
                         help='model which to train')
+    parser.add_argument('--optimizer', type=str, default="sgd", metavar='M',
+                        choices=["sgd", "adam", "adamax"],
+                        help='optimizer')
     parser.add_argument('--output-file', type=str, default=None, metavar='O',
                         help='path to the file where the results should be saved to')
     args = parser.parse_args()
@@ -171,7 +174,12 @@ def main():
     else:
         model = CNN().to(device)
 
-    optimizer = optim.SGD(model.parameters(), lr=args.lr)
+    if args.optimizer == "sgd":
+        optimizer = optim.SGD(model.parameters(), lr=args.lr)
+    if args.optimizer == "adam":
+        optimizer = optim.Adam(model.parameters(), lr=args.lr)
+    if args.optimizer == "adamax":
+        optimizer = optim.Adamax(model.parameters(), lr=args.lr)
 
     epochs = []
     times = []
