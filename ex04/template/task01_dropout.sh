@@ -11,16 +11,7 @@ module load anaconda/3
 source ~/.bashrc
 conda activate EML_ex03
 
-echo "Running Task 1: "
-
-echo "Base training"
-python3 exercise04_template.py --epochs 30 --output-file "task01_base.json"
-
-echo "CPU Run"
-python3 exercise04_template.py --epochs 1 --no-cuda
-
-echo "GPU Run"
-python3 exercise04_template.py --epochs 1
+echo "Running Task 1 Dropout: "
 
 echo "Dropout 0.1"
 python3 exercise04_template.py --epochs 30 --dropout_p 0.1 --output-file "task01_dropout01.json"
@@ -30,5 +21,3 @@ python3 exercise04_template.py --epochs 30 --dropout_p 0.4 --output-file "task01
 
 echo "Dropout 0.7"
 python3 exercise04_template.py --epochs 30 --dropout_p 0.7 --output-file "task01_dropout07.json"
-
-echo "---------------------------------"
