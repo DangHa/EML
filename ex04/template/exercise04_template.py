@@ -170,7 +170,11 @@ def main():
 
     model = VGG11(dropout_p=args.dropout_p).to(device)
     
-    optimizer = optim.Adam(model.parameters(), lr=args.lr)
+    # L2 regulization
+    if args.L2_reg is not None:
+        optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.L2_reg)
+    else:
+        optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
     train_losses = []
     test_losses = []
