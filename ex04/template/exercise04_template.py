@@ -141,6 +141,8 @@ def main():
                         help='how many batches to wait before logging training status')
     parser.add_argument('--output-file', type=str, default=None, metavar='O',
                         help='path to the file where the results should be saved to')
+    parser.add_argument('--selectaug', type=int, default=1, metavar='N',
+                        help='Type of data augmentation')                        
     args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
 
@@ -157,9 +159,32 @@ def main():
         train_kwargs.update(cuda_kwargs)
         test_kwargs.update(cuda_kwargs)
 
-    test_transforms = transforms.Compose([transforms.ToTensor()])
-    train_transforms = [transforms.ToTensor()]
-    train_transforms = transforms.Compose(train_transforms)
+    if args.selectaug == 1:
+      train_transforms = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),  # Randomly image crop
+        transforms.RandomHorizontalFlip(),  # Randomly horizontally flip
+        transforms.ToTensor()
+      ])
+
+    elif args.selectaug == 2:
+      train_transforms = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),  # Randomly image crop
+        transforms.RandomHorizontalFlip(),  # Randomly horizontally flip
+        transforms.RandomRotation(10), # Randomly image rotate by 10 degree
+        transforms.ToTensor()
+      ])
+      
+    elif args.selectaug == 3:
+      train_transforms = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),  # Randomly image crop
+        transforms.RandomHorizontalFlip(),  # Randomly horizontally flip
+        transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4), # Randomly  brightness, contrast, and saturation
+        transforms.ToTensor()
+      ])
+      
+    test_transforms = transforms.Compose([
+       transforms.ToTensor()
+    ])
 
     dataset_train = datasets.SVHN('../data', split='train', download=True,
                        transform=train_transforms)
