@@ -97,7 +97,7 @@ def test(model, device, test_loader):
         test_loss, correct, len(test_loader.dataset),
         accuracy))
     
-    return accuracy
+    return test_loss, accuracy
 
 
 def main():
@@ -123,7 +123,7 @@ def main():
     parser.add_argument('--model', type=str, default="mlp", metavar='M',
                         choices=["mlp", "cnn"],
                         help='model which to train')
-    parser.add_argument('--optimizer', type=str, default="sgd", metavar='OP',
+    parser.add_argument('--optimizer', type=str, default="adam", metavar='OP',
                         choices=["sgd", "adam", "adamax"],
                         help='optimizer')
     parser.add_argument('--output-file', type=str, default=None, metavar='O',
@@ -188,7 +188,7 @@ def main():
 
     for epoch in range(1, args.epochs + 1):
         train(args, model, device, train_loader, optimizer, epoch)
-        test_accuracy = test(model, device, test_loader)
+        test_loss, test_accuracy = test(model, device, test_loader)
         
         time_diff = time.time() - time_start
         times.append(time_diff)
@@ -199,6 +199,7 @@ def main():
         with open(args.output_file, "w") as f:
             data = {"epochs": epochs,
                     "times": times,
+                    "test": test_loss,
                     "accuracies": accuracies}
             json.dump(data, f)
 
