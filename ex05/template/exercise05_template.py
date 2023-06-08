@@ -85,6 +85,7 @@ class ResNet(nn.Module):
 
 def train(args, model, device, train_loader, optimizer, epoch):
     model.train()
+    train_loss = 0
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
@@ -97,6 +98,11 @@ def train(args, model, device, train_loader, optimizer, epoch):
                 time.time(),
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()/data.shape[0] ))
+        
+        train_loss += loss.sum().item()
+    
+    train_loss /= len(train_loader.dataset)
+    return train_loss
 
 def test(model, device, test_loader, epoch):
     model.eval()
