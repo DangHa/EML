@@ -13,5 +13,5 @@ conda activate EML_ex03
 
 echo "Running exercise05_template.py"
 
-echo "Base training"
+echo "ResNet training"
 python3 exercise05_template.py --epochs 50 --output-file "task01_resnet.json"

@@ -20,43 +20,38 @@ class BasicBlock(nn.Module):
     ) -> None:
         super().__init__()
         # TODO: Implement the basic residual block!
-        if norm_layer is None:
-            norm_layer = nn.BatchNorm2d
+        self.expansion = 1
 
-        self.conv1 = nn.Conv2d( inplanes,
-                                planes,
-                                kernel_size=3,
-                                stride=stride
-                            )
-        self.bn1 = norm_layer(planes)
-        self.relu = nn.ReLU(inplace=True)
-        self.conv2 = nn.Conv2d( planes,
-                                planes,
-                                kernel_size=3,
-                                stride=1
-                            )
+        self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=3, stride=stride, padding=1, bias=False) 
+        self.bn1 = norm_layer(planes)    
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn2 = norm_layer(planes)
+        self.relu = nn.ReLU()
+        
+        self.shortcut = nn.Sequential()
+        if stride != 1 or inplanes != self.expansion*planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(inplanes, self.expansion*planes, kernel_size=1, stride=stride, bias=False),
+                norm_layer(self.expansion*planes)
+            )
         self.stride = stride
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # TODO: Implement the basic residual block!
-        identity = x
+        shortcut = self.shortcut(x)
 
-        x = self.conv1(x)
-        x = self.bn1(x)
+        x = self.relu(self.bn1(self.conv1(x)))
+        x = self.bn2(self.conv2(x))
+
+        x = x + shortcut
         x = self.relu(x)
-
-        x = self.conv2(x)
-        x = self.bn2(x)
-
-        x += identity
-        x = self.relu(x)
-
         return x
 
 class ResNet(nn.Module):
     def __init__(self, norm_layer: Optional[Callable[..., nn.Module]] = nn.Identity):
         super().__init__()
+        self._norm_layer = norm_layer
+
         self.conv1 = nn.Conv2d(3, 32, 3, 1, padding=1)
         self.block1_1 = BasicBlock(32, 32, 1, self._norm_layer)
         self.block1_2 = BasicBlock(32, 32, 1, self._norm_layer)
