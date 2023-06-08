@@ -1,5 +1,6 @@
 from __future__ import print_function
 import argparse
+import json
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -116,11 +117,14 @@ def test(model, device, test_loader, epoch):
 
     test_loss /= len(test_loader.dataset)
 
+    accuracy = 100. * correct / len(test_loader.dataset)
     print('Current time: {:.4f}; Test Epoch: {}, Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.4f}%)\n'.format(
         time.time(),
         epoch,
         test_loss, correct, len(test_loader.dataset),
-        100. * correct / len(test_loader.dataset)))
+        accuracy))
+    
+    return test_loss, accuracy
 
 def main():
     # Training settings
@@ -141,6 +145,8 @@ def main():
                         help='random seed (default: 1)')
     parser.add_argument('--log-interval', type=int, default=200, metavar='N',
                         help='how many batches to wait before logging training status')
+    parser.add_argument('--output-file', type=str, default=None, metavar='O',
+                        help='path to the file where the results should be saved to')
     args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
 
@@ -179,10 +185,29 @@ def main():
         L2_reg = 0.
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=L2_reg)
 
-    print(f'Starting training at: {time.time():.4f}')
+    train_losses = []
+    test_losses = []
+    test_accuracies = []   
+
+    start_time = time.time()
+    print(f'Starting training at: {start_time:.4f}')
     for epoch in range(1, args.epochs + 1):
-        train(args, model, device, train_loader, optimizer, epoch)
-        test(model, device, test_loader, epoch)
+        train_loss = train(args, model, device, train_loader, optimizer, epoch)
+        test_loss, test_accuracy = test(model, device, test_loader, epoch)
+        train_losses.append(train_loss)
+        test_losses.append(test_loss)
+        test_accuracies.append(test_accuracy)
+
+    end_time = time.time()
+    print(f"Finished training. Took: {end_time - start_time} seconds.")
+
+    if args.output_file:
+        with open(args.output_file, "w") as f:
+            data = {"train_losses": train_losses,
+                    "test_losses": test_losses,
+                    "test_accuracies": test_accuracies}
+            json.dump(data, f)
+
 
 if __name__ == '__main__':
     main()
