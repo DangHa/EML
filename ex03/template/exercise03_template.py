@@ -123,7 +123,7 @@ def main():
     parser.add_argument('--model', type=str, default="mlp", metavar='M',
                         choices=["mlp", "cnn"],
                         help='model which to train')
-    parser.add_argument('--optimizer', type=str, default="adam", metavar='OP',
+    parser.add_argument('--optimizer', type=str, default="sgd", metavar='OP',
                         choices=["sgd", "adam", "adamax"],
                         help='optimizer')
     parser.add_argument('--output-file', type=str, default=None, metavar='O',
@@ -183,6 +183,7 @@ def main():
 
     epochs = []
     times = []
+    test_losses = []
     accuracies = []
     time_start = time.time()
 
@@ -193,13 +194,14 @@ def main():
         time_diff = time.time() - time_start
         times.append(time_diff)
         epochs.append(epoch)
+        test_losses.append(test_loss) 
         accuracies.append(test_accuracy)
 
     if args.output_file:
         with open(args.output_file, "w") as f:
             data = {"epochs": epochs,
                     "times": times,
-                    "test": test_loss,
+                    "test_losses": test_losses,
                     "accuracies": accuracies}
             json.dump(data, f)
 

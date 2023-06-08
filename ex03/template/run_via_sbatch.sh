@@ -16,7 +16,7 @@ echo "Running Task 1: "
 # echo "CPU runing"
 # python3 exercise03_template.py --dataset mnist --model mlp --epochs 30 --no-cuda --output-file "task01_cpu.json"
 echo "GPU runing"
-python3 exercise03_template.py --dataset svhn --model cnn --lr 0.001 --epochs 30 --output-file "task01_vgg.json"
+python3 exercise03_template.py --dataset svhn --model cnn --lr 0.001 --epochs 30 --output-file "task01_cnn.json"
 
 # echo "Running Task 2: "
 # echo "MLP runing"
