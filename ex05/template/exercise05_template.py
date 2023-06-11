@@ -10,6 +10,57 @@ import time
 import torchvision.ops as tv_nn
 from typing import Any, Callable, List, Optional, Type, Union
 
+
+class LayerNorm(nn.Module):
+    def __init__(self, planes, eps=1e-9):
+        super().__init__()
+        self._eps = eps
+        self._gamma = nn.Parameter(torch.ones((1, planes, 1, 1)),
+                                   requires_grad=True)
+        self._beta = nn.Parameter(torch.zeros((1, planes, 1, 1)),
+                                  requires_grad=True)
+
+    def forward(self, x):
+        var, mean = torch.var_mean(x, correction=0, dim=1, keepdim=True)
+        x_hat = (x - mean) / torch.sqrt(var + self._eps)
+        y = self._gamma * x_hat + self._beta
+        return y
+
+
+class BatchNorm(nn.Module):
+    def __init__(self, planes, eps=1e-9):
+        super().__init__()
+        self._eps = eps
+        self._gamma = nn.Parameter(torch.ones((1, planes, 1, 1)),
+                                   requires_grad=True)
+        self._beta = nn.Parameter(torch.zeros((1, planes, 1, 1)),
+                                  requires_grad=True)
+        self._n_batch = 0
+        self._batch_size = 0
+        self._running_var = 1
+        self._running_mean = 0
+
+    def _compute_running_value(self, batch_val, running_val, n):
+        return running_val + (batch_val - running_val) / (n + 1)
+
+    def forward(self, x):
+        if self._batch_size == 0:
+            self._batch_size = x.shape[0]
+        
+        if self.training:
+            var, mean = torch.var_mean(x, correction=0, dim=0)
+            self._running_var = self._compute_running_value(var, self._running_var, self._n_batch)
+            self._running_mean = self._compute_running_value(mean, self._running_mean, self._n_batch)
+            self._n_batch += 1
+        else:
+            var = (self._batch_size / (self._batch_size - 1)) * self._running_var
+            mean = self._running_mean
+
+        x_hat = (x - mean) / torch.sqrt(var + self._eps)
+        y = self._gamma * x_hat + self._beta
+        return y
+
+
 class BasicBlock(nn.Module):
     def __init__(
         self,
@@ -140,6 +191,8 @@ def main():
                         help='learning rate (default: 0.0001)')
     parser.add_argument('--L2_reg', type=float, default=None,
                         help='L2_reg (default: None)')
+    parser.add_argument('--norm', type=str, choices=["batch", "layer"], default=None,
+                        help='norm (default: None)')
     parser.add_argument('--no-cuda', action='store_true', default=False,
                         help='disables CUDA training')
     parser.add_argument('--seed', type=int, default=1, metavar='S',
@@ -176,7 +229,12 @@ def main():
     train_loader = torch.utils.data.DataLoader(dataset_train,**train_kwargs)
     test_loader = torch.utils.data.DataLoader(dataset_test, **test_kwargs)
 
-    norm_layer = nn.Identity
+    if args.norm == "layer":
+        norm_layer = LayerNorm
+    elif args.norm == "batch":
+        norm_layer = BatchNorm
+    else:
+        norm_layer = nn.Identity
     model = ResNet(norm_layer=norm_layer)
     model = model.to(device)
 
