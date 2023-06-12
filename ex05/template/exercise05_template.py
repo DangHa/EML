@@ -265,7 +265,7 @@ def main():
         wandb.log({
             "train_loss": train_loss,
             "test_loss": test_loss,
-            "test_accuracies": test_accuracies
+            "test_accuracy": test_accuracy
         })
 
     end_time = time.time()
