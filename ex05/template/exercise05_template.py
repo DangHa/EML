@@ -1,4 +1,5 @@
 from __future__ import print_function
+import wandb
 import argparse
 import json
 import torch
@@ -244,6 +245,11 @@ def main():
         L2_reg = 0.
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=L2_reg)
 
+    wandb.init(
+        project="ex05",
+        config=vars(args)
+    )
+
     train_losses = []
     test_losses = []
     test_accuracies = []   
@@ -256,9 +262,16 @@ def main():
         train_losses.append(train_loss)
         test_losses.append(test_loss)
         test_accuracies.append(test_accuracy)
+        wandb.log({
+            "train_loss": train_loss,
+            "test_loss": test_loss,
+            "test_accuracies": test_accuracies
+        })
 
     end_time = time.time()
     print(f"Finished training. Took: {end_time - start_time} seconds.")
+
+    wandb.finish()
 
     if args.output_file:
         with open(args.output_file, "w") as f:
